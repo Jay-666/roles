@@ -1,0 +1,11 @@
+password: admin
+base_dir: /usr/local/mysql
+src_dir: /usr
+data_dir: /usr/local/mysql/data
+etc_dir: /usr/local/mysql/etc
+log_dir: /usr/local/mysql/log
+error_log_name: mysql-error.log
+mysql_user: mysql
+pid_file: /tmp/mysql.pid
+version: 5.7.29
+

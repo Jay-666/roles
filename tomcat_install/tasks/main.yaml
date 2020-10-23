@@ -1,0 +1,6 @@
+- name: "获取java安装信息"
+  shell: which java |wc -l
+  register: java_path
+- include_tasks: jdk1.8.0_install.yaml
+  when:  java_path.stdout != "1"
+- include_tasks: tomcat_install.yaml

@@ -1,0 +1,45 @@
+- name: "1-新建/usr/mysql"
+  file:
+    path: "{{ base_dir }}" 
+    state: directory
+    owner: mysql
+    group: mysql
+
+- name: "2-新建mysql/(log,data,etc)目录"
+  file: 
+    path: "{{ item }}"
+    state: directory
+
+  with_items: 
+    - "{{ etc_dir }}"
+    - "{{ log_dir }}"
+    - "{{ data_dir }}"
+    - "{{ src_dir }}"
+- name: "3-创建mysql-error.log"
+  file: 
+    path: "{{ log_dir }}/{{ error_log_name }}"
+    state: touch
+
+- name: "4-修改base_dir的所有者所属组"
+  shell: chown -R {{ mysql_user }}.{{ mysql_user }} {{ base_dir }}
+  
+- name: "8-make install"
+  command: 
+    cmd: make install
+    chdir: "{{ src_dir }}/mysql-{{ version }}"
+  
+- name: "5-template传输my.cnf模板"
+  template: src=my.cnf dest={{ etc_dir }} 
+- name: "6-mysql初始化"
+  command: "{{ base_dir }}/bin/mysqld --initialize-insecure --user={{ mysql_user }} --basedir={{ base_dir }} --datadir={{ data_dir }} --pid-file={{ pid_file }}"
+- name: "7-传输启动脚本模板template（修改启动脚本）"
+  template: src=mysqld dest=/etc/init.d mode='0740'
+- name: "8-添加执行文件至/usr/bin中"
+  file: src={{ base_dir }}/bin/* dest=/usr/bin state=link
+- name: "加入开机自启"
+  shell: chkconfig mysqld on
+- name: "10-启动mysql服务"
+  shell: /etc/init.d/mysqld start
+- name: "11-修改密码"
+  shell: mysqladmin -uroot password {{ password }}
+

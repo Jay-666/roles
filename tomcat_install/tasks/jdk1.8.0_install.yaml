@@ -1,0 +1,16 @@
+- name: "创建java目录"
+  file: path=/usr/java state=directory
+- name: "拷贝解压jdk"
+  unarchive: src=jdk-8u161-linux-x64.tar.gz dest=/usr/java/
+- name: "重命名jdk"
+  command: mv /usr/java/jdk1.8.0_161 /usr/java/jdk1.8.0
+- name: "追加jdk环境变量"
+  shell: echo {{ item }} >>  /etc/bashrc
+  with_items: 
+    - 'export JAVA_HOME=/usr/java/jdk1.8.0'
+    - 'export JRE_HOME=$JAVA_HOME/jre'
+    - 'export CLASSPATH=.:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar'
+    - 'export PATH=$JAVA_HOME/bin:$PATH'
+- name: "刷新环境变量"
+  shell: source  /etc/bashrc
+
