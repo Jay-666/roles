@@ -1,0 +1,42 @@
+- name: "1-安装依赖"
+  yum:
+    name: [gcc,gcc-c++,ncurses-devel,perl,autoconf,cmake,openssl-devel]
+    state: installed
+
+- name: "2-创建MySQL用户组"
+  group: name={{ mysql_user }} state=present
+
+- name: "3-创建mysql用户"
+  user: name={{ mysql_user }} group={{ mysql_user }} shell=/bin/nologin
+
+
+- name: "4-传输解压"
+  unarchive: src=mysql-boost-5.7.29.tar.gz dest={{ src_dir }} 
+
+- name: "5-获取空余内存大小"
+  shell: free -m | awk 'NR==2{print $4}'
+  register: men_free
+
+- name: "6-生成临时swap"
+  shell:  dd if=/dev/zero of=/swapfile bs=1M count=4096 && mkswap /swapfile && swapon /swapfile
+  when: men_free < 4096
+
+- name: "7-清除编译缓存"
+  file:
+    path: "{{ src_dir }}/mysql-{{ version }}/CMakeCache.txt"
+    state: absent
+
+- name: "8-cmake"
+  shell: 
+    cmd: cmake -DCMAKE_INSTALL_PREFIX={{ base_dir }} -DDEFAULT_CHARSET=utf8 -DDEFAULT_COLLATION=utf8_general_ci -DWITH_BOOST=boost
+    chdir: "{{ src_dir }}/mysql-{{ version }}"
+
+- name: "9-make -j 2"
+  command:
+    cmd: make -j 2
+    chdir: "{{ src_dir }}/mysql-{{ version }}"
+
+
+- name: "10-释放临时swap"
+  shell: swapoff /swapfile && rm /swapfile
+  when: men_free < 4096

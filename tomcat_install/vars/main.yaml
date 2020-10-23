@@ -1,0 +1,3 @@
+#tomcat_name: tomcat_node2
+#http_port: 8081
+#shutdown_port: 8086
